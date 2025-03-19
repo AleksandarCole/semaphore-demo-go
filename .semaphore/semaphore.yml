@@ -21,6 +21,8 @@ blocks:
         - name: go get & build
           commands:
             - checkout
+            - which go
+            - go version
             - go get
             - go build -o ./bin/main
             - cache store $(checksum main.go) bin
