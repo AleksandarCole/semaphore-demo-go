@@ -18,8 +18,10 @@ auto_cancel:
 global_job_config:
   prologue:
     commands:
-      - echo $PATH
+      - 'export PATH=$PATH:/usr/local/go/bin'
+      - 'echo "Updated PATH: $PATH"'
       - which go || echo "Go not found"
+      - go version || echo "failed"
       - ls -la /usr/local/go/bin/ || echo "Go directory not found"
 blocks:
   - name: "\U0001F6E0 Setup and Cache"
