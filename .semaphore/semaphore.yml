@@ -22,7 +22,7 @@ global_job_config:
   prologue:
     commands:
       - checkout
-      - echo "PATH: $PATH"
+      - 'echo "PATH: $PATH"'
       - go version
       - cache restore
       - go mod download
