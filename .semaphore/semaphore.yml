@@ -6,60 +6,80 @@ agent:
     os_image: ''
   containers:
     - name: main
-      image: 'registry.semaphoreci.com/ubuntu:22.04'
-    - name: postgres
-      image: 'postgres:17'
-      env_vars:
-        - name: POSTGRES_PASSWORD
-          value: postgres
-        - name: POSTGRES_DB
-          value: myapp_test
+      image: 'registry.semaphoreci.com/golang:1.21'
+fail_fast:
+  stop:
+    when: branch != 'main'
+auto_cancel:
+  running:
+    when: branch != 'main'
+  queued:
+    when: branch = 'main'
+global_job_config:
+  prologue:
+    commands:
+      - checkout
+      - cache restore
+      - go mod download
+      - go install gotest.tools/gotestsum@latest
 blocks:
-  - name: Install Go & Build project
+  - name: "\U0001F6E0 Setup and Cache"
+    dependencies: []
     task:
       jobs:
-        - name: Install Go and Build
+        - name: Install Dependencies
           commands:
-            - checkout
-            - apt-get update && apt-get install -y curl build-essential git
-            - 'curl -fsSL https://golang.org/dl/go1.19.linux-amd64.tar.gz | tar -xzC /usr/local'
-            - 'export PATH=$PATH:/usr/local/go/bin'
-            - go version
-            - 'git clone https://github.com/your/repository.git'
-            - cd repository-directory
-            - go mod tidy
-            - go build -o ./bin/main
-            - cache store $(checksum main.go) bin
-  - name: Check code style
+            - go install golang.org/x/lint/golint@latest
+            - go install honnef.co/go/tools/cmd/staticcheck@latest
+            - cache store
+  - name: "\U0001F50D Code Quality"
+    dependencies:
+      - "\U0001F6E0 Setup and Cache"
     task:
       jobs:
-        - name: gofmt
+        - name: Lint and Vet
           commands:
-            - checkout
-            - gofmt main.go | diff --ignore-tab-expansion main.go -
-  - name: Run tests
+            - golint ./...
+            - go vet ./...
+            - staticcheck ./...
+            - go fmt ./...
+  - name: "\U0001F510 Security Checks"
+    dependencies:
+      - "\U0001F6E0 Setup and Cache"
     task:
-      prologue:
-        commands:
-          - checkout
       jobs:
-        - name: go test
+        - name: Security Scan
           commands:
-            - psql -p 5432 -h localhost -U postgres -c "CREATE DATABASE s2"
-            - go install gotest.tools/gotestsum@latest
-            - gotestsum --junitfile junit.xml ./...
-        - name: Test web server
+            - go install golang.org/x/vuln/cmd/govulncheck@latest
+            - govulncheck ./...
+  - name: "\U0001F9EA Test Suite"
+    dependencies: []
+    task:
+      env_vars:
+        - name: GO_TEST_REPORT
+          value: test-results.xml
+      jobs:
+        - name: "\U0001F7E2 Go Test"
+          parallelism: 4
           commands:
-            - cache restore $(checksum main.go)
-            - ./bin/main 8001 &
-            - 'curl --silent localhost:8001/time | grep "The current time is"'
+            - gotestsum --junitfile=$GO_TEST_REPORT -- -coverprofile=coverage.txt -covermode=atomic ./...
+            - go tool cover -func=coverage.txt
       epilogue:
         always:
           commands:
-            - test-results publish junit.xml
+            - test-results publish $GO_TEST_REPORT
+  - name: "\U0001F4E6 Build"
+    dependencies:
+      - "\U0001F9EA Test Suite"
+    task:
+      jobs:
+        - name: "\U0001F528 Build Binary"
+          commands:
+            - GOOS=linux GOARCH=amd64 go build -o bin/app
+            - GOOS=darwin GOARCH=amd64 go build -o bin/app-darwin
 after_pipeline:
   task:
     jobs:
-      - name: Publish Results
+      - name: "Merge Reports \U0001F4CA"
         commands:
           - test-results gen-pipeline-report
