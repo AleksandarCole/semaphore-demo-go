@@ -6,7 +6,10 @@ agent:
     os_image: ''
   containers:
     - name: main
-      image: 'golang:1.19'
+      image: 'ubuntu:20.04'
+      environment:
+        - name: go
+          value: '1.19'
     - name: postgres
       image: 'postgres:17'
       env_vars:
@@ -15,12 +18,15 @@ agent:
         - name: POSTGRES_DB
           value: myapp_test
 blocks:
-  - name: Build project
+  - name: Install Go & Build project
     task:
       jobs:
-        - name: go get & build
+        - name: Install Go and Build
           commands:
             - checkout
+            - apt-get update && apt-get install -y curl build-essential
+            - 'curl -fsSL https://golang.org/dl/go1.19.linux-amd64.tar.gz | tar -xzC /usr/local'
+            - 'export PATH=$PATH:/usr/local/go/bin'
             - go version
             - go get
             - go build -o ./bin/main
