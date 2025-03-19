@@ -9,7 +9,7 @@ agent:
       image: 'golang:1.23'
 fail_fast:
   stop:
-    when: branch != 'main'
+    when: branch = 'main'
 auto_cancel:
   running:
     when: branch != 'main'
