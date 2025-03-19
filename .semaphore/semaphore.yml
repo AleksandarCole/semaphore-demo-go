@@ -21,11 +21,13 @@ blocks:
         - name: Install Go and Build
           commands:
             - checkout
-            - apt-get update && apt-get install -y curl build-essential
+            - apt-get update && apt-get install -y curl build-essential git
             - 'curl -fsSL https://golang.org/dl/go1.19.linux-amd64.tar.gz | tar -xzC /usr/local'
             - 'export PATH=$PATH:/usr/local/go/bin'
             - go version
-            - go get
+            - 'git clone https://github.com/your/repository.git'
+            - cd repository-directory
+            - go mod tidy
             - go build -o ./bin/main
             - cache store $(checksum main.go) bin
   - name: Check code style
