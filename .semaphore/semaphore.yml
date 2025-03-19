@@ -18,10 +18,9 @@ auto_cancel:
 global_job_config:
   prologue:
     commands:
-      - checkout
-      - cache restore
-      - go mod download
-      - go install gotest.tools/gotestsum@latest
+      - echo $PATH
+      - which go || echo "Go not found"
+      - ls -la /usr/local/go/bin/ || echo "Go directory not found"
 blocks:
   - name: "\U0001F6E0 Setup and Cache"
     dependencies: []
