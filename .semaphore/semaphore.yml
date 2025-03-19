@@ -7,9 +7,6 @@ agent:
   containers:
     - name: main
       image: 'ubuntu:20.04'
-      environment:
-        - name: go
-          value: '1.19'
     - name: postgres
       image: 'postgres:17'
       env_vars:
