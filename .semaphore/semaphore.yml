@@ -6,7 +6,7 @@ agent:
     os_image: ''
   containers:
     - name: main
-      image: 'go:1.19'
+      image: 'golang:1.19-alpine'
     - name: postgres
       image: 'postgres:17'
       env_vars:
