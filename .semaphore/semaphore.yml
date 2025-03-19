@@ -6,7 +6,7 @@ agent:
     os_image: ''
   containers:
     - name: main
-      image: 'ubuntu:20.04'
+      image: 'registry.semaphoreci.com/ubuntu:22.04'
     - name: postgres
       image: 'postgres:17'
       env_vars:
