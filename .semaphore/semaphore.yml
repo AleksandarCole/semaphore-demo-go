@@ -53,7 +53,8 @@ blocks:
             - go install golang.org/x/vuln/cmd/govulncheck@latest
             - govulncheck ./...
   - name: "\U0001F9EA Test Suite"
-    dependencies: []
+    dependencies:
+      - "\U0001F6E0 Setup and Cache"
     task:
       env_vars:
         - name: GO_TEST_REPORT
@@ -70,6 +71,8 @@ blocks:
             - test-results publish $GO_TEST_REPORT
   - name: "\U0001F4E6 Build"
     dependencies:
+      - "\U0001F50D Code Quality"
+      - "\U0001F510 Security Checks"
       - "\U0001F9EA Test Suite"
     task:
       jobs:
